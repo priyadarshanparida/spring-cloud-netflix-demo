@@ -5,3 +5,5 @@ spring:
         git:
           uri: https://github.com/priyanparida/spring-cloud-netflix-demo.git
           search-paths: config-repo
+server:
+  port: 8888
