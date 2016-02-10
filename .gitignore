@@ -7,3 +7,6 @@ target/
 .metadata/
 RemoteSystemsTempFiles/
 Servers/
+.classpath
+.project
+.settings/
