@@ -27,6 +27,7 @@
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-config-server</artifactId>
+			<!-- Do NOT remove version, server stops pulling config -->
 			<version>1.0.4.RELEASE</version>
 		</dependency>
 		<dependency>
