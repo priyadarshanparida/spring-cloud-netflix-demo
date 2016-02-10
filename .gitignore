@@ -4,3 +4,6 @@
 mvnw
 mvnw.cmd
 target/
+.metadata/
+RemoteSystemsTempFiles/
+Servers/
