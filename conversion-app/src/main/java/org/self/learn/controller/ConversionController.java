@@ -7,6 +7,7 @@ import org.self.learn.client.ExchangeRateClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -37,7 +38,7 @@ public class ConversionController {
 		put(5, "FEIGN_CLIENT");
 	}};
 	
-	@RequestMapping(value="/convert", method=RequestMethod.GET)
+	@RequestMapping(value="/convert", method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
 	public Float convert(@RequestParam("amt") Float amount, @RequestParam("cc") String countryCode, @RequestParam("sit") Integer sit) {
 		String conversionFactor = null;
 		
