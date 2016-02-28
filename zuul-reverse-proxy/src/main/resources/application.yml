@@ -1,0 +1,13 @@
+server:
+  port: 8000
+  
+zuul:
+  routes:
+    exchange-rate:
+      path: /exchangeRate/**
+      strip-prefix: false
+      url: http://localhost:7070
+    exchange-rate-root:
+      path: /
+      strip-prefix: false
+      url: http://localhost:7070
