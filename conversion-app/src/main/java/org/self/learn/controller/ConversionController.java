@@ -1,9 +1,7 @@
 package org.self.learn.controller;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.self.learn.client.ExchangeRateClient;
+import org.self.learn.client.ExchangeRateHystrixClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
@@ -28,43 +26,61 @@ public class ConversionController {
 	private LoadBalancerClient loadBalancerClient;
 	@Autowired
 	private ExchangeRateClient exchangeRateClient;
+	@Autowired
+	private ExchangeRateHystrixClient exchangeRateHystrixClient;
 	
-	@SuppressWarnings("serial")
-	Map<Integer, String> serviceInvocationTypes = new HashMap<Integer, String>() {{
-		put(1, "SIMPLE_REST_TEMPLATE");
-		put(2, "SIMPLE_REST_TEMPLATE_WITH_DISCOVERY_CLIENT");
-		put(3, "RIBBON_ENABLED_REST_TEMPLATE");
-		put(4, "RIBBON_LOAD_BALANCER_CLIENT");
-		put(5, "FEIGN_CLIENT");
-	}};
+	enum ServiceInvocationTypes {
+		SIMPLE_REST_TEMPLATE(1),
+		SIMPLE_REST_TEMPLATE_WITH_DISCOVERY_CLIENT(2),
+		RIBBON_ENABLED_REST_TEMPLATE(3),
+		RIBBON_LOAD_BALANCER_CLIENT(4),
+		FEIGN_CLIENT(5),
+		HYSTRIX_ENABLED_CLIENT(6);
+		
+		private int value;
+		
+		private ServiceInvocationTypes(int val) {
+			this.value = val;
+		}
+		
+		private int value() {
+			return this.value;
+		}
+	}
 	
 	@RequestMapping(value="/convert", method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
-	public Float convert(@RequestParam("amt") Float amount, @RequestParam("cc") String countryCode, @RequestParam("sit") Integer sit) {
-		String conversionFactor = null;
+	public Float convert(@RequestParam("amt") Float amount, @RequestParam("cc") String countryCode, @RequestParam("sit") Integer serviceInvocationType) {
+		Float conversionFactor = 0F;
 		
-		if("SIMPLE_REST_TEMPLATE".equals(serviceInvocationTypes.get(sit))) {
+		if(ServiceInvocationTypes.SIMPLE_REST_TEMPLATE.value() == serviceInvocationType.intValue()) {
 			RestTemplate restTemplate = new RestTemplate();
-			conversionFactor = restTemplate.getForObject("http://localhost:7070/exchangeRate?countryCode="+countryCode, String.class);
+			conversionFactor = restTemplate.getForObject("http://localhost:7070/exchangeRate?countryCode={countryCode}", Float.class, countryCode);
 			
-		} else if("SIMPLE_REST_TEMPLATE_WITH_DISCOVERY_CLIENT".equals(serviceInvocationTypes.get(sit))) {
+		} else if(ServiceInvocationTypes.SIMPLE_REST_TEMPLATE_WITH_DISCOVERY_CLIENT.value() == serviceInvocationType.intValue()) {
 			InstanceInfo instance = discoveryClient.getNextServerFromEureka("exchange-rate-provider", false);
 			RestTemplate restTemplate = new RestTemplate();
-			conversionFactor = restTemplate.getForObject(instance.getHomePageUrl()+"exchangeRate?countryCode="+countryCode, String.class);
+			conversionFactor = restTemplate.getForObject(instance.getHomePageUrl()+"exchangeRate?countryCode="+countryCode, Float.class);
 			
-		} else if("RIBBON_ENABLED_REST_TEMPLATE".equals(serviceInvocationTypes.get(sit))) {
-			conversionFactor = restTemplate.getForObject("http://exchange-rate-provider/exchangeRate?countryCode="+countryCode, String.class);
+		} else if(ServiceInvocationTypes.RIBBON_ENABLED_REST_TEMPLATE.value() == serviceInvocationType.intValue()) {
+			String conversionFactorResponse = restTemplate.getForObject("http://exchange-rate-provider/exchangeRate?countryCode="+countryCode, String.class);
+			conversionFactor = conversionFactorResponse!=null?Float.parseFloat(conversionFactorResponse):conversionFactor;
 			
-		} else if("RIBBON_LOAD_BALANCER_CLIENT".equals(serviceInvocationTypes.get(sit))) {
+		} else if(ServiceInvocationTypes.RIBBON_LOAD_BALANCER_CLIENT.value() == serviceInvocationType.intValue()) {
 			ServiceInstance serviceInstance = loadBalancerClient.choose("exchange-rate-provider");
 			RestTemplate restTemplate = new RestTemplate();
-			conversionFactor = restTemplate.getForObject(serviceInstance.getUri()+"/exchangeRate?countryCode="+countryCode, String.class);
+			conversionFactor = restTemplate.getForObject(serviceInstance.getUri()+"/exchangeRate?countryCode="+countryCode, Float.class);
 			
-		} else if("FEIGN_CLIENT".equals(serviceInvocationTypes.get(sit))) {
-			conversionFactor = exchangeRateClient.getConversionFactor(countryCode);
+		} else if(ServiceInvocationTypes.FEIGN_CLIENT.value() == serviceInvocationType.intValue()) {
+			String conversionFactorResponse = exchangeRateClient.getConversionFactor(countryCode);
+			conversionFactor = conversionFactorResponse!=null?Float.parseFloat(conversionFactorResponse):conversionFactor;
+			
+		} else if(ServiceInvocationTypes.HYSTRIX_ENABLED_CLIENT.value() ==  serviceInvocationType.intValue()) {
+			String conversionFactorResponse = exchangeRateHystrixClient.getConversionFactor(countryCode);
+			conversionFactor = conversionFactorResponse!=null?Float.parseFloat(conversionFactorResponse):conversionFactor;
 			
 		}
 		
-		return Float.parseFloat(conversionFactor)*amount;
+		return conversionFactor*amount;
 	}
 	
 }
