@@ -35,7 +35,8 @@
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-config-server</artifactId>
-			<!-- Do NOT remove version, server stops pulling config -->
+			<!-- Do NOT remove version, server stops pulling config
+			1.0.2.RELEASE has bugs which were addressed in 1.0.4.RELEASE -->
 			<version>1.0.4.RELEASE</version>
 		</dependency>
 		<dependency>
