@@ -10,4 +10,4 @@ zuul:
     exchange-rate-root:
       path: /
       strip-prefix: false
-      url: http://localhost:7070
+      url: http://localhost:9090

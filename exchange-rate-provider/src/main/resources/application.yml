@@ -3,6 +3,10 @@ spring:
     name: exchange-rate-provider
 
 eureka:
+  instance:
+    lease-expiration-duration-in-seconds: 10
+    metadata-map:
+      instanceId: ${spring.application.name}:${spring.application.instance_id:${random.value}} 
   client:
     service-url:
       defaultZone: http://localhost:9090/eureka/

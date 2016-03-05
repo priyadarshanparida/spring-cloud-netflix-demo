@@ -67,6 +67,7 @@ public class ConversionController {
 			
 		} else if(ServiceInvocationTypes.RIBBON_LOAD_BALANCER_CLIENT.value() == serviceInvocationType.intValue()) {
 			ServiceInstance serviceInstance = loadBalancerClient.choose("exchange-rate-provider");
+			System.out.println("**************************Provider Server Port: "+serviceInstance.getPort()+"**************************");
 			RestTemplate restTemplate = new RestTemplate();
 			conversionFactor = restTemplate.getForObject(serviceInstance.getUri()+"/exchangeRate?countryCode="+countryCode, Float.class);
 			
