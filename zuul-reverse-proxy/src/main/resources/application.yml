@@ -3,11 +3,11 @@ server:
   
 zuul:
   routes:
-    exchange-rate:
+    exchange-rate-provider:
       path: /exchangeRate/**
       strip-prefix: false
       url: http://localhost:7070
-    exchange-rate-root:
+    eureka:
       path: /
       strip-prefix: false
       url: http://localhost:9090

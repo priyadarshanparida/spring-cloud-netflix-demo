@@ -13,3 +13,6 @@ Servers/
 .recommenders/
 .springBeans
 *.pptx
+Spring Cloud Netflix v0.1.pdf
+maven-config/
+wip/
